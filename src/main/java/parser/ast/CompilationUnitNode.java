@@ -1,6 +1,7 @@
 package parser.ast;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public class CompilationUnitNode extends QuartzNode {
 
@@ -26,5 +27,13 @@ public class CompilationUnitNode extends QuartzNode {
             s.append(f.toString()).append('\n');
         }
         return s.toString();
+    }
+
+    public Stream<ImportNode> importNodeStream() {
+        return imports.stream();
+    }
+
+    public Stream<FunctionNode> functionNodeStream() {
+        return functions.stream();
     }
 }

@@ -25,4 +25,12 @@ public class FunctionCallNode extends QuartzNode {
         this.targetIdentifier = targetIdentifier;
         this.arguments = arguments;
     }
+
+    public String getTargetIdentifier() {
+        return targetIdentifier;
+    }
+
+    public List<QuartzNode> getArguments() {
+        return arguments;
+    }
 }

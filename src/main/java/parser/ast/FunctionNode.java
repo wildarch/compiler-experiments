@@ -28,4 +28,16 @@ public class FunctionNode extends QuartzNode {
 
         return s.toString();
     }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public String getReturnTypeIdentifier() {
+        return returnTypeIdentifier;
+    }
+
+    public List<QuartzNode> getStatements() {
+        return statements;
+    }
 }
