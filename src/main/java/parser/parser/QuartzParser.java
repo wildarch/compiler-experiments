@@ -1,7 +1,6 @@
 package parser.parser;
 
-import parser.ast.ImportNode;
-import parser.ast.QuartzNode;
+import parser.ast.*;
 
 import org.parboiled.Rule;
 import org.parboiled.BaseParser;
@@ -11,23 +10,30 @@ import org.parboiled.annotations.SkipNode;
 import org.parboiled.annotations.SuppressNode;
 import org.parboiled.annotations.BuildParseTree;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @BuildParseTree
 public class QuartzParser extends BaseParser<QuartzNode>
 {
     public Rule File() {
+        Var<List<ImportNode>> imports = new Var<>(new ArrayList<>());
+        Var<List<FunctionNode>> functions = new Var<>(new ArrayList<>());
         return Sequence(
             Spacing(),
-            ZeroOrMore(Import()),
+            ZeroOrMore(Import(imports)),
             Spacing(),
-            OneOrMore(Function()),
-            EOI // End of Input
+            OneOrMore(Function(functions)),
+            EOI, // End of Input
+            push(new CompilationUnitNode(imports.get(), functions.get()))
         );
     }
     @SkipNode
-    Rule Import() {
+    Rule Import(Var<List<ImportNode>> imports) {
         StringVar identifier = new StringVar();
-        return Sequence(String("import"), Spacing(), Identifier(identifier), push(new ImportNode(identifier.get())));
+        return Sequence(String("import"), Spacing(), Identifier(identifier),
+                imports.get().add((new ImportNode(identifier.get()))));
     }
 
     @SuppressNode
@@ -56,14 +62,15 @@ public class QuartzParser extends BaseParser<QuartzNode>
     }
 
     @SkipNode
-    Rule Function() {
+    Rule Function(Var<List<FunctionNode>> functions) {
         StringVar identifier = new StringVar();
         StringVar typeIdentifier = new StringVar();
         return Sequence(
             String("fun"), Spacing(), Identifier(identifier), Spacing(), // Function identifier
             Open(), Spacing(), Parameters(), Spacing(), Close(), // Parameters
             Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing(), // Type
-            ScopeStart(), Spacing(), FunctionScope(), Spacing(), ScopeEnd(), Spacing() // Function scope
+            ScopeStart(), Spacing(), FunctionScope(), Spacing(), ScopeEnd(), Spacing(),// Function scope
+                functions.get().add(new FunctionNode(identifier.get(), typeIdentifier.get(), new ArrayList<>()))
         );
     }
 
@@ -115,11 +122,13 @@ public class QuartzParser extends BaseParser<QuartzNode>
     }
 
     Rule IntegerLiteral() {
-        return OneOrMore(CharRange('0','9'));
+        return Sequence(OneOrMore(CharRange('0', '9')),
+                push(new LiteralNode(Integer.parseInt(match()))));
     }
 
     Rule StringLiteral() {
-        return Sequence(Ch('"'), ZeroOrMore(Sequence(TestNot(AnyOf("\"")), ANY)), Ch('"'));
+        return Sequence(Ch('"'), ZeroOrMore(Sequence(TestNot(AnyOf("\"")), ANY)), Ch('"'),
+                push(new LiteralNode(match())));
     }
 
     @SuppressNode

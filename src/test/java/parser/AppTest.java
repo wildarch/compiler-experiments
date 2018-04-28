@@ -3,6 +3,7 @@ package parser;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.parboiled.support.ParseTreeUtils;
 import org.parboiled.support.ParsingResult;
 import parser.ast.QuartzNode;
 
@@ -43,6 +44,8 @@ public class AppTest extends TestCase
         assertNotNull(result.parseTreeRoot);
 
         QuartzNode constraintRoot = (QuartzNode) result.parseTreeRoot.getValue();
+
+        //System.out.println(ParseTreeUtils.printNodeTree(result));
 
         System.out.println(constraintRoot);
     }
