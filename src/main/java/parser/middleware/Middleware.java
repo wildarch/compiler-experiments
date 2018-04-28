@@ -1,6 +1,6 @@
 package parser.middleware;
 
-import parser.dto.QuartzNode;
+import parser.ast.QuartzNode;
 
 public abstract class Middleware 
 {

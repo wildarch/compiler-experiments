@@ -1,7 +1,6 @@
 import io
 
-// i64
-
+// This is the main function.
 fun main () : i64 {
     io.println("Hello world!")
 

@@ -1,6 +1,6 @@
 package parser;
 
-import parser.dto.QuartzNode;
+import parser.ast.QuartzNode;
 import parser.parser.QuartzParser;
 
 import java.io.File;
@@ -13,13 +13,11 @@ import org.parboiled.errors.ParseError;
 import org.parboiled.support.ParsingResult;
 import org.parboiled.parserunners.ReportingParseRunner;
 
-public class App
-{
-    public static void main( String[] args )
-    {
+public class App {
+    public static void main(String[] args) {
         // Debug, verbose
         Logger.init(false, true);
- 
+
         String algorithm = "emersonlei"; //default algorithm
         String autFilename = "";
 
@@ -28,13 +26,13 @@ public class App
 
         String mcf = "";
         QuartzParser parser = Parboiled.createParser(QuartzParser.class);
-        ParsingResult<?> result = new ReportingParseRunner(parser.Formula()).run(mcf);
+        ParsingResult<?> result = new ReportingParseRunner(parser.File()).run(mcf);
 
         if (result.hasErrors()) {
             System.out.println("Parsing mcf failed: ");
             for (ParseError error : result.parseErrors) {
                 System.out.println(error.getErrorMessage());
-                System.out.println("Start: "+error.getStartIndex()+" end: "+error.getEndIndex());
+                System.out.println("Start: " + error.getStartIndex() + " end: " + error.getEndIndex());
             }
             return;
         }
@@ -57,16 +55,14 @@ public class App
         return;
     }
 
-    public static ParsingResult<?> parseString(String input)
-    {
+    public static ParsingResult<?> parseString(String input) {
         QuartzParser parser = Parboiled.createParser(QuartzParser.class);
-        ParsingResult<?> result = new ReportingParseRunner(parser.Formula()).run(input);
+        ParsingResult<?> result = new ReportingParseRunner(parser.File()).run(input);
 
         return result;
     }
 
-    public static String readFile(String filename) throws IOException
-    {
+    public static String readFile(String filename) throws IOException {
         BufferedReader reader = null;
         StringBuilder stringBuilder = new StringBuilder();
 

@@ -4,8 +4,8 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.parboiled.support.ParsingResult;
+import parser.ast.QuartzNode;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -35,12 +35,15 @@ public class AppTest extends TestCase
     }
 
     public void test() throws IOException, URISyntaxException {
-        URI uri = getClass().getResource("parser/hello.q").toURI();
+        URI uri = getClass().getResource("/parser/hello.q").toURI();
         String content = new String(Files.readAllBytes(Paths.get(uri)));
+
         ParsingResult<?> result = App.parseString(content);
 
-        System.out.println(result);
+        assertNotNull(result.parseTreeRoot);
 
-        assertTrue( true );
+        QuartzNode constraintRoot = (QuartzNode) result.parseTreeRoot.getValue();
+
+        System.out.println(constraintRoot);
     }
 }
