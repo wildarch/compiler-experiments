@@ -45,8 +45,6 @@ public class AppTest extends TestCase
 
         QuartzNode constraintRoot = (QuartzNode) result.parseTreeRoot.getValue();
 
-        //System.out.println(ParseTreeUtils.printNodeTree(result));
-
         System.out.println(constraintRoot);
     }
 }

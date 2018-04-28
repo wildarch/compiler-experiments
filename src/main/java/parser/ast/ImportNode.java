@@ -9,6 +9,6 @@ public class ImportNode extends QuartzNode {
 
     @Override
     public String toString() {
-        return "import: "+this.identifier;
+        return "import: " + this.identifier;
     }
 }

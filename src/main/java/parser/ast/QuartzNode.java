@@ -1,21 +1,16 @@
 package parser.ast;
 
-import java.util.List;
+import java.util.stream.IntStream;
 
-public abstract class QuartzNode
-{
-    private static int depth = 0;
+public abstract class QuartzNode {
+    static final int INDENT_WIDTH = 4;
+    static int depth = 0;
 
-    @Override
-    public String toString() 
-    {
-        String self = "";
-        depth++;
-        String space = new String(new char[2*this.depth]).replace('\0', ' ');
-        String children= "";
-        depth--;
-
-        return self+children;
+    protected String indent() {
+        StringBuilder s = new StringBuilder();
+        IntStream.range(0, depth * INDENT_WIDTH).forEach(i -> s.append(' '));
+        return s.toString();
     }
+
 
 }

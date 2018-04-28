@@ -1,14 +1,14 @@
 package parser.ast;
 
-public class LiteralNode extends QuartzNode {
-    private int intValue;
-    private String stringValue;
+public class LiteralNode<T> extends QuartzNode {
+    private T value;
 
-    public LiteralNode(int value) {
-        this.intValue = value;
+    public LiteralNode(T value) {
+        this.value = value;
     }
 
-    public LiteralNode(String value) {
-       this.stringValue = value;
+    @Override
+    public String toString() {
+        return value.toString();
     }
 }
