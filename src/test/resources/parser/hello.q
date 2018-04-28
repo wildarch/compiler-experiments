@@ -4,5 +4,5 @@ import io
 fun main () : i64 {
     io.println("Hello world!")
 
-    return 0
+    return 42
 }

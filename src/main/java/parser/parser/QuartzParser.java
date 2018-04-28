@@ -65,12 +65,13 @@ public class QuartzParser extends BaseParser<QuartzNode>
     Rule Function(Var<List<FunctionNode>> functions) {
         StringVar identifier = new StringVar();
         StringVar typeIdentifier = new StringVar();
+        Var<List<QuartzNode>> statements = new Var<>(new ArrayList<>());
         return Sequence(
             String("fun"), Spacing(), Identifier(identifier), Spacing(), // Function identifier
             Open(), Spacing(), Parameters(), Spacing(), Close(), // Parameters
             Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing(), // Type
-            ScopeStart(), Spacing(), FunctionScope(), Spacing(), ScopeEnd(), Spacing(),// Function scope
-                functions.get().add(new FunctionNode(identifier.get(), typeIdentifier.get(), new ArrayList<>()))
+            ScopeStart(), Spacing(), FunctionScope(statements), Spacing(), ScopeEnd(), Spacing(),// Function scope
+            functions.get().add(new FunctionNode(identifier.get(), typeIdentifier.get(), statements.get()))
         );
     }
 
@@ -84,34 +85,44 @@ public class QuartzParser extends BaseParser<QuartzNode>
         return Sequence(Identifier(identifier), Spacing(), Ch(':'), Spacing(), Type(typeIdentifier));
     }
 
-    Rule Arguments() {
-        return ZeroOrMore(Sequence(Argument(), Spacing(), Optional(Ch(','), Spacing())));
+    Rule Arguments(Var<List<QuartzNode>> arguments) {
+        return ZeroOrMore(Sequence(Argument(arguments), Spacing(), Optional(Ch(','), Spacing())));
     }
 
-    Rule Argument() {
+    Rule Argument(Var<List<QuartzNode>> arguments) {
         StringVar identifier = new StringVar();
-        return Sequence(FirstOf(Identifier(identifier),Literal()), Spacing());
+        return Sequence(
+                FirstOf(
+                        Sequence(Identifier(identifier), arguments.get().add(new IdentifierNode(identifier.get()))),
+                        Sequence(Literal(), arguments.get().add(pop()))
+                ),
+                Spacing()
+        );
     }
 
-    Rule FunctionScope() {
-        return OneOrMore(Statement());
+    Rule FunctionScope(Var<List<QuartzNode>> statements) {
+        return OneOrMore(Statement(statements));
     }
 
     // TODO, handle newlines properly.
-    Rule Statement() {
-        return Sequence(FirstOf(FunctionCall(), Return()), Spacing());
+    Rule Statement(Var<List<QuartzNode>> statements) {
+        return Sequence(FirstOf(FunctionCall(statements), Return(statements)), Spacing());
     }
 
-    Rule FunctionCall() {
+    Rule FunctionCall(Var<List<QuartzNode>> statements) {
         StringVar target = new StringVar();
-        return Sequence(QualifiedIdentifier(target), Open(), Arguments(), Close(), Spacing());
+        Var<List<QuartzNode>> arguments = new Var<>(new ArrayList<>());
+        return Sequence(QualifiedIdentifier(target), Open(), Arguments(arguments), Close(), Spacing(),
+                statements.get().add(new FunctionCallNode(target.get(), arguments.get())));
     }
 
-    Rule Return() {
-        return Sequence(String("return"), Spacing(), Expression());
+    Rule Return(Var<List<QuartzNode>> statements) {
+        return Sequence(String("return"), Spacing(), Expression(),
+                statements.get().add(new ReturnNode(pop())));
     }
 
     // Todo, add more expression types.
+    // Note to self, every expression type should push a value to the stack.
     Rule Expression() {
         return Literal();
     }
@@ -127,8 +138,12 @@ public class QuartzParser extends BaseParser<QuartzNode>
     }
 
     Rule StringLiteral() {
-        return Sequence(Ch('"'), ZeroOrMore(Sequence(TestNot(AnyOf("\"")), ANY)), Ch('"'),
-                push(new LiteralNode(match())));
+        return Sequence(
+                Ch('"'),
+                    ZeroOrMore(Sequence(TestNot(AnyOf("\"")), ANY)),
+                    push(new LiteralNode(match())),
+                Ch('"')
+        );
     }
 
     @SuppressNode
