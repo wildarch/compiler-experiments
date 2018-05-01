@@ -1,5 +1,7 @@
 package parser.parser;
 
+import org.parboiled.Action;
+import org.parboiled.Context;
 import parser.ast.*;
 
 import org.parboiled.Rule;
@@ -106,7 +108,12 @@ public class QuartzParser extends BaseParser<QuartzNode>
 
     // TODO, handle newlines properly.
     Rule Statement(Var<List<QuartzNode>> statements) {
-        return Sequence(FirstOf(FunctionCall(statements), Return(statements)), Spacing());
+        return Sequence(FirstOf(
+                FunctionCall(statements),
+                Return(statements),
+                Assignment(statements)
+               ),
+               Spacing());
     }
 
     Rule FunctionCall(Var<List<QuartzNode>> statements) {
@@ -121,10 +128,65 @@ public class QuartzParser extends BaseParser<QuartzNode>
                 statements.get().add(new ReturnNode(pop())));
     }
 
-    // Todo, add more expression types.
-    // Note to self, every expression type should push a value to the stack.
+    Rule Assignment(Var<List<QuartzNode>> statements) {
+        StringVar typeIdentifier = new StringVar();
+        StringVar identifier = new StringVar();
+        Var<Boolean> variableWasAssigned = new Var<>(false);
+        return Sequence(
+                FirstOf(
+                    // id : type = expression
+                    Sequence(Identifier(identifier), Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing(), Ch('='), Spacing(), Expression(),
+                        variableWasAssigned.set(true)),
+                    // id = expression
+                    Sequence(Identifier(identifier), Spacing(), Ch('='), Spacing(), Expression(),
+                        variableWasAssigned.set(true)),
+                    // id : type
+                    Sequence(Identifier(identifier), Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing())
+                ),
+                new Action() {
+                    @Override
+                    public boolean run(Context context) {
+                        // If there is a typeIdentifier, there is a VariableDefinition.
+                        if (0 != typeIdentifier.get().length())
+                            statements.get().add(new VariableDefinitionNode(typeIdentifier.get(), identifier.get()));
+
+                        if (true == variableWasAssigned.get()) {
+                            statements.get().add(new VariableAssignmentNode(identifier.get(), pop()));
+                        }
+
+                        return true;
+                    }
+                }
+        );
+    }
+
+    // Every expression type should push a value to the stack.
     Rule Expression() {
-        return Literal();
+        return FirstOf(
+                Sequence(LeftHandSide(), Spacing(), Operator(), Spacing(), RightHandSide(),
+                        push(new ExpressionNode(pop(2), (OperatorNode)pop(1), pop(0)))),
+                Sequence(LeftHandSide(),
+                        push(new ExpressionNode(pop())))
+        );
+    }
+
+    Rule LeftHandSide() {
+        StringVar identifier = new StringVar();
+        return FirstOf(
+                Literal(),
+                Sequence('(', Spacing(), Expression(), Spacing(), ')', Spacing()), // Can contain brackets.
+                Sequence(Identifier(identifier), Spacing(), push(new IdentifierNode(identifier.get())))
+        );
+    }
+
+    // The right hand side can be anything.
+    Rule RightHandSide() {
+        return Expression();
+    }
+
+    // TODO, add a way to define custom operators instead of hardcoded ones.
+    Rule Operator() {
+        return Sequence(FirstOf(Ch('+'), Ch('-'), Ch('/'), Ch('*')), push(new OperatorNode(match())));
     }
 
     // Todo, add more literal types.
@@ -157,7 +219,8 @@ public class QuartzParser extends BaseParser<QuartzNode>
         return Sequence(
             CharRange('a','z'), predicate.set(matchedChar()),
             push(new QuartzNode('p', predicate.get()))
-        );
+        );                ZeroOrMore(Sequence(TestNot(AnyOf("\"")), ANY)),
+                push(new LiteralNode(match())),
     }
     */
 
