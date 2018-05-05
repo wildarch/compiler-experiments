@@ -17,4 +17,32 @@ public class ExpressionNode extends QuartzNode
         this.operator = null;
         this.rightHandSide = null;
     }
+
+    public boolean isSimple() {
+        return null == this.operator;
+    }
+
+    public QuartzNode getLeftHandSide() {
+        return this.leftHandSide;
+    }
+
+    public void setLeftHandSide(QuartzNode leftHandSide) {
+        this.leftHandSide = leftHandSide;
+    }
+
+    public OperatorNode getOperator() {
+        return this.operator;
+    }
+
+    public void setOperator(OperatorNode operator) {
+        this.operator = operator;
+    }
+
+    public QuartzNode getRightHandSide() {
+        return this.rightHandSide;
+    }
+
+    public void setRightHandSide(QuartzNode rightHandSide) {
+        this.rightHandSide = rightHandSide;
+    }
 }

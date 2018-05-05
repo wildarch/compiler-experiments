@@ -151,7 +151,7 @@ public class QuartzParser extends BaseParser<QuartzNode>
                             statements.get().add(new VariableDefinitionNode(typeIdentifier.get(), identifier.get()));
 
                         if (true == variableWasAssigned.get()) {
-                            statements.get().add(new VariableAssignmentNode(identifier.get(), pop()));
+                            statements.get().add(new VariableAssignmentNode(identifier.get(), (ExpressionNode)pop()));
                         }
 
                         return true;

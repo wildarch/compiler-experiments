@@ -8,4 +8,12 @@ public class VariableDefinitionNode extends QuartzNode {
         this.typeIdentifier = typeIdentifier;
         this.identifier = identifier;
     }
+
+    public String getTypeIdentifier() {
+       return this.typeIdentifier;
+    }
+
+    public String getIdentifier() {
+        return this.identifier;
+    }
 }

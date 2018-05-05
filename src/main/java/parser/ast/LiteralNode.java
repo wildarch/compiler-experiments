@@ -7,6 +7,10 @@ public class LiteralNode<T> extends QuartzNode {
         this.value = value;
     }
 
+    public T getValue() {
+        return this.value;
+    }
+
     @Override
     public String toString() {
         return value.toString();
