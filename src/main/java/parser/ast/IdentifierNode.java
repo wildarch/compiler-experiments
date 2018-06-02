@@ -8,8 +8,12 @@ public class IdentifierNode extends QuartzNode {
         this.identifier = identifier;
     }
 
+    public String getIdentifier() {
+        return this.identifier;
+    }
+
     @Override
     public String toString() {
-        return identifier;
+        return String.format("Identifier[%s]", identifier);
     }
 }

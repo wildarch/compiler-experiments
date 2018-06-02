@@ -3,8 +3,6 @@ package interpreter;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.parboiled.support.ParsingResult;
-import parser.App;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,18 +32,22 @@ public class QuartzInterpreterTest extends TestCase
         return new TestSuite(QuartzInterpreterTest.class);
     }
 
-    public void runFile(String fileName) throws IOException, URISyntaxException {
+    private void runFile(String fileName) throws Exception {
         URI uri = getClass().getResource("/parser/" + fileName).toURI();
         String content = new String(Files.readAllBytes(Paths.get(uri)));
         QuartzInterpreter interpreter = new QuartzInterpreter(content);
         interpreter.run();
     }
 
-    public void testHello() throws IOException, URISyntaxException {
+    public void testHello() throws Exception {
         runFile("hello.q");
     }
 
-    public void testCall() throws IOException, URISyntaxException {
+    public void testCall() throws Exception {
         runFile("call.q");
+    }
+
+    public void testArithmetic() throws Exception {
+        runFile("arithmetic.q");
     }
 }
