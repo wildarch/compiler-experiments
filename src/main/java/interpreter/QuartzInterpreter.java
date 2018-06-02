@@ -99,7 +99,16 @@ public class QuartzInterpreter {
                     else {
                         // TODO this is awful, remove it
                         if(targetIdent.equals("io.println")) {
-                            System.out.println(call.getArguments().get(0));
+                            QuartzNode arg = call.getArguments().get(0);
+                            if(arg instanceof LiteralNode) {
+                                System.out.println(arg);
+                            }
+                            else if(arg instanceof IdentifierNode) {
+                                IdentifierNode ident = (IdentifierNode) arg;
+                                Variable var = currentFrame.getVariable(ident.getIdentifier());
+                                System.out.println(var.get().format());
+
+                            }
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-
+import io
 
 fun main() : i64 {
     a : i64 = 1
@@ -6,5 +6,6 @@ fun main() : i64 {
 
     c : i64 = a + b
 
+    io.println(c)
     return c
 }

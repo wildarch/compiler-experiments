@@ -14,6 +14,6 @@ public class IdentifierNode extends QuartzNode {
 
     @Override
     public String toString() {
-        return identifier;
+        return String.format("Identifier[%s]", identifier);
     }
 }

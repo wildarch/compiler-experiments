@@ -30,4 +30,9 @@ public class Integer extends QuartzType
 
         return this;
     }
+
+    @Override
+    public String format() {
+        return String.valueOf(value);
+    }
 }
