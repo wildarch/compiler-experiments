@@ -17,20 +17,20 @@ import java.util.List;
 
 
 @BuildParseTree
-public class QuartzParser extends BaseParser<QuartzNode>
-{
+public class QuartzParser extends BaseParser<QuartzNode> {
     public Rule File() {
         Var<List<ImportNode>> imports = new Var<>(new ArrayList<>());
         Var<List<FunctionNode>> functions = new Var<>(new ArrayList<>());
         return Sequence(
-            Spacing(),
-            ZeroOrMore(Import(imports)),
-            Spacing(),
-            OneOrMore(Function(functions)),
-            EOI, // End of Input
-            push(new CompilationUnitNode(imports.get(), functions.get()))
+                Spacing(),
+                ZeroOrMore(Import(imports)),
+                Spacing(),
+                OneOrMore(Function(functions)),
+                EOI, // End of Input
+                push(new CompilationUnitNode(imports.get(), functions.get()))
         );
     }
+
     @SkipNode
     Rule Import(Var<List<ImportNode>> imports) {
         StringVar identifier = new StringVar();
@@ -40,7 +40,7 @@ public class QuartzParser extends BaseParser<QuartzNode>
 
     @SuppressNode
     Rule Identifier(StringVar name) {
-        return OneOrMore(Sequence(FirstOf(CharRange('a','z'), CharRange('A', 'Z'), CharRange('0','9'), Ch('_')), name.append(matchedChar())));
+        return OneOrMore(Sequence(FirstOf(CharRange('a', 'z'), CharRange('A', 'Z'), CharRange('0', '9'), Ch('_')), name.append(matchedChar())));
     }
 
     @SuppressNode
@@ -51,15 +51,15 @@ public class QuartzParser extends BaseParser<QuartzNode>
     @SuppressNode
     Rule Spacing() {
         return ZeroOrMore(FirstOf(
-            // Whitespace
-            OneOrMore(AnyOf(" \t\r\n\f").label("Whitespace")),
+                // Whitespace
+                OneOrMore(AnyOf(" \t\r\n\f").label("Whitespace")),
 
-            // Single line comment
-            Sequence(
-                "//",
-                ZeroOrMore(TestNot(AnyOf("\r\n")), ANY),
-                FirstOf("\r\n", '\r', '\n', EOI)
-            )
+                // Single line comment
+                Sequence(
+                        "//",
+                        ZeroOrMore(TestNot(AnyOf("\r\n")), ANY),
+                        FirstOf("\r\n", '\r', '\n', EOI)
+                )
         ));
     }
 
@@ -69,11 +69,11 @@ public class QuartzParser extends BaseParser<QuartzNode>
         StringVar typeIdentifier = new StringVar();
         Var<List<QuartzNode>> statements = new Var<>(new ArrayList<>());
         return Sequence(
-            String("fun"), Spacing(), Identifier(identifier), Spacing(), // Function identifier
-            Open(), Spacing(), Parameters(), Spacing(), Close(), // Parameters
-            Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing(), // Type
-            ScopeStart(), Spacing(), FunctionScope(statements), Spacing(), ScopeEnd(), Spacing(),// Function scope
-            functions.get().add(new FunctionNode(identifier.get(), typeIdentifier.get(), statements.get()))
+                String("fun"), Spacing(), Identifier(identifier), Spacing(), // Function identifier
+                Open(), Spacing(), Parameters(), Spacing(), Close(), // Parameters
+                Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing(), // Type
+                ScopeStart(), Spacing(), Scope(statements), Spacing(), ScopeEnd(), Spacing(),// Function scope
+                functions.get().add(new FunctionNode(identifier.get(), typeIdentifier.get(), statements.get()))
         );
     }
 
@@ -102,18 +102,19 @@ public class QuartzParser extends BaseParser<QuartzNode>
         );
     }
 
-    Rule FunctionScope(Var<List<QuartzNode>> statements) {
+    Rule Scope(Var<List<QuartzNode>> statements) {
         return OneOrMore(Statement(statements));
     }
 
     // TODO, handle newlines properly.
     Rule Statement(Var<List<QuartzNode>> statements) {
         return Sequence(FirstOf(
+                ForLoop(statements),
                 FunctionCall(statements),
                 Return(statements),
                 Assignment(statements)
-               ),
-               Spacing());
+                ),
+                Spacing());
     }
 
     Rule FunctionCall(Var<List<QuartzNode>> statements) {
@@ -121,6 +122,27 @@ public class QuartzParser extends BaseParser<QuartzNode>
         Var<List<QuartzNode>> arguments = new Var<>(new ArrayList<>());
         return Sequence(QualifiedIdentifier(target), Open(), Arguments(arguments), Close(), Spacing(),
                 statements.get().add(new FunctionCallNode(target.get(), arguments.get())));
+    }
+
+    Rule ForLoop(Var<List<QuartzNode>> statements) {
+        StringVar identifier = new StringVar();
+        StringVar typeIdentifier = new StringVar();
+        Var<List<QuartzNode>> innerStatements = new Var<>(new ArrayList<>());
+        return Sequence(String("for"), Spacing(),
+                Identifier(identifier), Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing(),
+                String("in"), Spacing(), Range(), Spacing(),
+                ScopeStart(), Spacing(), Scope(innerStatements), Spacing(), ScopeEnd(),
+                statements.get().add(new ForNode(
+                        new VariableDefinitionNode(typeIdentifier.get(), identifier.get()),
+                        (RangeNode) pop(),
+                        innerStatements)
+                )
+        );
+    }
+
+    Rule Range() {
+        return Sequence(Expression(), Spacing(), String(".."), Spacing(), Expression(),
+                push(new RangeNode((ExpressionNode)pop(1), (ExpressionNode)pop())));
     }
 
     Rule Return(Var<List<QuartzNode>> statements) {
@@ -134,14 +156,14 @@ public class QuartzParser extends BaseParser<QuartzNode>
         Var<Boolean> variableWasAssigned = new Var<>(false);
         return Sequence(
                 FirstOf(
-                    // id : type = expression
-                    Sequence(Identifier(identifier), Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing(), Ch('='), Spacing(), Expression(),
-                        variableWasAssigned.set(true)),
-                    // id = expression
-                    Sequence(Identifier(identifier), Spacing(), Ch('='), Spacing(), Expression(),
-                        variableWasAssigned.set(true)),
-                    // id : type
-                    Sequence(Identifier(identifier), Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing())
+                        // id : type = expression
+                        Sequence(Identifier(identifier), Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing(), Ch('='), Spacing(), Expression(),
+                                variableWasAssigned.set(true)),
+                        // id = expression
+                        Sequence(Identifier(identifier), Spacing(), Ch('='), Spacing(), Expression(),
+                                variableWasAssigned.set(true)),
+                        // id : type
+                        Sequence(Identifier(identifier), Spacing(), Ch(':'), Spacing(), Type(typeIdentifier), Spacing())
                 ),
                 new Action() {
                     @Override
@@ -151,7 +173,7 @@ public class QuartzParser extends BaseParser<QuartzNode>
                             statements.get().add(new VariableDefinitionNode(typeIdentifier.get(), identifier.get()));
 
                         if (true == variableWasAssigned.get()) {
-                            statements.get().add(new VariableAssignmentNode(identifier.get(), (ExpressionNode)pop()));
+                            statements.get().add(new VariableAssignmentNode(identifier.get(), (ExpressionNode) pop()));
                         }
 
                         return true;
@@ -164,7 +186,7 @@ public class QuartzParser extends BaseParser<QuartzNode>
     Rule Expression() {
         return FirstOf(
                 Sequence(LeftHandSide(), Spacing(), Operator(), Spacing(), RightHandSide(),
-                        push(new ExpressionNode(pop(2), (OperatorNode)pop(1), pop(0)))),
+                        push(new ExpressionNode(pop(2), (OperatorNode) pop(1), pop(0)))),
                 Sequence(LeftHandSide(),
                         push(new ExpressionNode(pop())))
         );
@@ -202,15 +224,15 @@ public class QuartzParser extends BaseParser<QuartzNode>
     Rule StringLiteral() {
         return Sequence(
                 Ch('"'),
-                    ZeroOrMore(Sequence(TestNot(AnyOf("\"")), ANY)),
-                    push(new LiteralNode(match())),
+                ZeroOrMore(Sequence(TestNot(AnyOf("\"")), ANY)),
+                push(new LiteralNode(match())),
                 Ch('"')
         );
     }
 
     @SuppressNode
     Rule Type(StringVar typeIdentifier) {
-        return OneOrMore(Sequence(FirstOf(CharRange('a','z'), CharRange('0','9')), typeIdentifier.append(matchedChar())));
+        return OneOrMore(Sequence(FirstOf(CharRange('a', 'z'), CharRange('0', '9')), typeIdentifier.append(matchedChar())));
     }
 
     /*
@@ -228,6 +250,7 @@ public class QuartzParser extends BaseParser<QuartzNode>
     Rule ScopeStart() {
         return Ch('{');
     }
+
     @SuppressNode
     Rule ScopeEnd() {
         return Ch('}');
@@ -237,6 +260,7 @@ public class QuartzParser extends BaseParser<QuartzNode>
     Rule Open() {
         return Ch('(');
     }
+
     @SuppressNode
     Rule Close() {
         return Ch(')');
@@ -246,6 +270,7 @@ public class QuartzParser extends BaseParser<QuartzNode>
     Rule And() {
         return String("&&");
     }
+
     @SuppressNode
     Rule Or() {
         return String("||");

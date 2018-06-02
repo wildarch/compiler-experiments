@@ -65,4 +65,8 @@ public class AppTest extends TestCase
     public void testArithmetic() throws IOException, URISyntaxException {
         runFile("arithmetic.q");
     }
+
+    public void testControlFlow() throws IOException, URISyntaxException {
+        runFile("fibonacci.q");
+    }
 }
